@@ -2868,5 +2868,44 @@ Some quote
        (format "'%s': the referenced file not in allowed list"
                org-mcp-test--content-id-resource-id))))))
 
+(ert-deftest org-mcp-test-read-only-blocks-update-todo-state ()
+  "Test that org-update-todo-state is blocked in read-only mode."
+  (let ((test-content org-mcp-test--content-simple-todo))
+    (org-mcp-test--with-temp-org-files
+        ((test-file test-content))
+      (let ((org-mcp-read-only t)
+            (org-todo-keywords
+             '((sequence "TODO" "IN-PROGRESS" "|" "DONE"))))
+        (org-mcp-test--call-update-todo-state-expecting-error
+         test-file
+         (format "org-headline://%s#Original%%20Task" test-file)
+         "TODO" "IN-PROGRESS")))))
+
+(ert-deftest org-mcp-test-read-only-blocks-add-todo ()
+  "Test that org-add-todo is blocked in read-only mode."
+  (let ((org-mcp-read-only t))
+    (org-mcp-test--call-add-todo-expecting-error
+     org-mcp-test--content-empty nil nil
+     "New Task" "TODO" nil nil
+     (format "org-headline://%s#" test-file))))
+
+(ert-deftest org-mcp-test-read-only-blocks-rename-headline ()
+  "Test that org-rename-headline is blocked in read-only mode."
+  (let ((org-mcp-read-only t))
+    (org-mcp-test--call-rename-headline-expecting-error
+     org-mcp-test--content-simple-todo
+     "Original%20Task" "Original Task" "Renamed Task")))
+
+(ert-deftest org-mcp-test-read-only-blocks-edit-body ()
+  "Test that org-edit-body is blocked in read-only mode."
+  (let ((test-content org-mcp-test--content-simple-todo))
+    (org-mcp-test--with-temp-org-files
+        ((test-file test-content))
+      (let ((org-mcp-read-only t))
+        (org-mcp-test--call-edit-body-expecting-error
+         test-file
+         (format "org-headline://%s#Original%%20Task" test-file)
+         "First line" "Replaced line")))))
+
 (provide 'org-mcp-test)
 ;;; org-mcp-test.el ends here

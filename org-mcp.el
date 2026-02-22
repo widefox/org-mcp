@@ -42,6 +42,11 @@
   :type '(repeat file)
   :group 'org-mcp)
 
+(defcustom org-mcp-read-only nil
+  "When non-nil, disable all write operations."
+  :type 'boolean
+  :group 'org-mcp)
+
 (defconst org-mcp--server-id "org-mcp"
   "Server ID for org-mcp MCP server registration.")
 
@@ -216,6 +221,8 @@ BODY can access FILE-PATH, OPERATION, and RESPONSE-ALIST as
 variables."
   (declare (indent 3) (debug (form form form body)))
   `(progn
+     (when org-mcp-read-only
+       (org-mcp--tool-validation-error "org-mcp is in read-only mode"))
      (org-mcp--fail-if-modified ,file-path ,operation)
      (with-temp-buffer
        (set-visited-file-name ,file-path t)
