@@ -21,7 +21,8 @@ Or with =use-package= and =:vc= (Emacs 30+):
 (use-package org-mcp
   :vc (:url "https://github.com/laurynas-biveinis/org-mcp.git")
   :custom
-  (org-mcp-allowed-files '("/path/to/foo.org" "/path/to/bar.org")))
+  (org-mcp-allowed-files '("/path/to/foo.org" "/path/to/bar.org"))
+  (org-mcp-read-only t))
 #+end_src
 
 Eventually I plan to publish this package on MELPA.
@@ -80,11 +81,12 @@ Before using the MCP server, you must start it in Emacs with =M-x mcp-server-lib
 - *Configuration:* Files must be explicitly allowed via =org-mcp-allowed-files= using absolute paths
 - *Returns:* JSON representation of the document structure with headings and their levels
 
-Example:
-#+begin_example
-# Access via MCP:
-URI: org-outline:///home/user/org/projects.org
-Returns: JSON structure like:
+Example — access via MCP:
+
+=URI: org-outline:///home/user/org/projects.org=
+
+Returns JSON structure like:
+#+begin_src json
 {
   "headings": [
     {
@@ -97,7 +99,7 @@ Returns: JSON structure like:
     }
   ]
 }
-#+end_example
+#+end_src
 
 *** org-headline://{filename}#{path}
 - *Description:* Access the content of a specific headline by its path
@@ -236,24 +238,27 @@ Empty configuration returns:
   - =new_state= (string, required): New TODO state (must be valid in org-todo-keywords)
 - *Returns:* Success status with previous and new states, and ID-based URI of the updated headline
 
-Example:
+Example request:
 #+begin_src json
-# Request:
 {
   "uri": "org-headline:///home/user/org/projects.org#Project%20Alpha",
   "current_state": "TODO",
   "new_state": "IN-PROGRESS"
 }
+#+end_src
 
-# Success response:
+Success response:
+#+begin_src json
 {
   "success": true,
   "previous_state": "TODO",
   "new_state": "IN-PROGRESS",
   "uri": "org-id://554A22F6-E29F-4759-8AD2-E7CA225C6397"
 }
+#+end_src
 
-# State mismatch error:
+State mismatch error:
+#+begin_src json
 {
   "error": "State mismatch: expected TODO, found IN-PROGRESS"
 }
@@ -267,24 +272,27 @@ Example:
   - =new_title= (string, required): New headline title (without TODO state or tags)
 - *Returns:* Success status with previous and new titles
 
-Example:
+Example request:
 #+begin_src json
-# Request:
 {
   "uri": "org-headline:///home/user/org/projects.org#Original%20Task",
   "current_title": "Original Task",
   "new_title": "Updated Task Name"
 }
+#+end_src
 
-# Success response:
+Success response:
+#+begin_src json
 {
   "success": true,
   "previous_title": "Original Task",
   "new_title": "Updated Task Name",
   "uri": "org-id://550e8400-e29b-41d4-a716-446655440002"
 }
+#+end_src
 
-# Title mismatch error:
+Title mismatch error:
+#+begin_src json
 {
   "error": "Title mismatch: expected 'Original Task', found 'Different Task'"
 }
@@ -301,9 +309,8 @@ Example:
   - =after_uri= (string, optional): URI of sibling to insert after. If not given, append as last child of parent
 - *Returns:* Object with success status, new item URI, file name, and title
 
-Example:
+Example request:
 #+begin_src json
-# Request:
 {
   "title": "Implement new feature",
   "todo_state": "TODO",
@@ -311,8 +318,10 @@ Example:
   "body": "This feature needs to be completed by end of week.",
   "parent_uri": "org-headline:///home/user/org/projects.org/"
 }
+#+end_src
 
-# Success response:
+Success response:
+#+begin_src json
 {
   "success": true,
   "uri": "org-id://550e8400-e29b-41d4-a716-446655440001",
@@ -331,22 +340,25 @@ Example:
 - *Returns:* Success status with ID-based URI of the updated node
 - *Special behavior:* When =old_body= is an empty string (""), the tool will only work if the node has no body content, allowing you to add initial content to empty nodes
 
-Example:
+Example request:
 #+begin_src json
-# Request:
 {
   "resource_uri": "org-id://abc-123",
   "old_body": "This is a placeholder.",
   "new_body": "Implementation started - using Strategy pattern."
 }
+#+end_src
 
-# Success response:
+Success response:
+#+begin_src json
 {
   "success": true,
   "uri": "org-id://abc-123"
 }
+#+end_src
 
-# Adding content to empty node:
+Adding content to empty node:
+#+begin_src json
 {
   "resource_uri": "org-id://new-task",
   "old_body": "",
